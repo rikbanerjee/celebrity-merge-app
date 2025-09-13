@@ -16,6 +16,7 @@ A modern React web application that merges user photos with celebrity images usi
 - Node.js (version 16 or higher)
 - npm or yarn
 - Google AI API key (Gemini API)
+- Firebase project with Authentication enabled
 
 ## Setup Instructions
 
@@ -34,31 +35,64 @@ A modern React web application that merges user photos with celebrity images usi
    - Create a new API key
    - Copy the API key
 
-4. **Configure the API key**
+4. **Set up Firebase Authentication**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project or select an existing one
+   - Enable Authentication in the Firebase console
+   - Go to Project Settings → General → Your apps
+   - Add a web app and copy the configuration
+   - Enable Email/Password and Google sign-in providers
+
+5. **Configure environment variables**
    - Copy the `.env.example` file to `.env`:
    ```bash
    cp .env.example .env
    ```
-   - Open `.env` and replace `your_api_key_here` with your actual API key:
+   - Open `.env` and replace the placeholder values:
    ```bash
-   VITE_GEMINI_API_KEY=your-actual-api-key-here
+   # Google AI API
+   VITE_GEMINI_API_KEY=your-actual-gemini-api-key
+   
+   # Firebase Configuration
+   VITE_FIREBASE_API_KEY=your-firebase-api-key
+   VITE_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your-project-id
+   VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+   VITE_FIREBASE_APP_ID=your-firebase-app-id
    ```
 
-5. **Start the development server**
+6. **Start the development server**
    ```bash
    npm run dev
    ```
 
-6. **Open your browser**
+7. **Open your browser**
    - Navigate to `http://localhost:5173`
+   - Sign in or create an account
    - Start creating amazing photo merges!
+
+## Authentication
+
+The app is protected by Firebase Authentication. Users must sign in before accessing the main application.
+
+### **Supported Sign-in Methods:**
+- **Email/Password**: Create an account or sign in with existing credentials
+- **Google Sign-in**: Quick authentication with Google account
+
+### **Features:**
+- Secure user authentication
+- Automatic session management
+- Sign-out functionality
+- User profile display
 
 ## Usage
 
-1. **Upload Images**: Click on the upload areas to select your selfie and a celebrity photo
-2. **Choose Background**: Select from pre-defined options or type your own custom background
-3. **Generate**: Click "Create Your Slay!" to generate your merged photo
-4. **Download**: Save your result with the download button
+1. **Sign In**: Create an account or sign in with your existing credentials
+2. **Upload Images**: Click on the upload areas to select your selfie and a celebrity photo
+3. **Choose Background**: Select from pre-defined options or type your own custom background
+4. **Generate**: Click "Create Your Slay!" to generate your merged photo
+5. **Download**: Save your result with the download button
 
 ## Background Options
 
@@ -96,7 +130,14 @@ The app uses Google's Gemini API with the following configuration:
 
 The app uses environment variables for configuration:
 
+### **Required Variables:**
 - **VITE_GEMINI_API_KEY**: Your Google AI API key for Gemini access
+- **VITE_FIREBASE_API_KEY**: Your Firebase project API key
+- **VITE_FIREBASE_AUTH_DOMAIN**: Your Firebase auth domain (project-id.firebaseapp.com)
+- **VITE_FIREBASE_PROJECT_ID**: Your Firebase project ID
+- **VITE_FIREBASE_STORAGE_BUCKET**: Your Firebase storage bucket
+- **VITE_FIREBASE_MESSAGING_SENDER_ID**: Your Firebase messaging sender ID
+- **VITE_FIREBASE_APP_ID**: Your Firebase app ID
 
 **Important Security Notes:**
 - Never commit your `.env` file to version control
