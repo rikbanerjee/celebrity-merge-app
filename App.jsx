@@ -129,7 +129,8 @@ const App = () => {
           {
             parts: [
               {
-                text: `Merge these two people into a single image, as if they are standing together on a ${backgroundPrompt || 'glamorous red carpet'}. Ensure first person's face is clear and an accurate representation of the original image. Ensure the second person's face is clear and an accurate representation of the original image. Make the image fun and look like a high-fashion photo shoot. Negative prompt: distorted faces, multiple faces, blurry facial features, asymmetrical eyes.`
+                //text: `Merge these two people into a single image, as if they are standing together on a ${backgroundPrompt || 'glamorous red carpet'}. Ensure first person's face is clear and an accurate representation of the original image. Ensure the second person's face is clear and an accurate representation of the original image. Make the image fun and look like a high-fashion photo shoot. Negative prompt: distorted faces, multiple faces, blurry facial features, asymmetrical eyes.`
+                text: `Generate a single photorealistic image featuring both people from the provided inputs. Maintain the exact likeness and facial features of the second person with the utmost priority. Normalize the scale of both subjects so they appear as if they were photographed from the same distance. The two subjects must be standing side-by-side, at a consistent full-body scale, in a ${backgroundPrompt || 'glamorous red carpet'}. The image should be fun and vibrant, like a high-fashion photo shoot. Negative prompt: morphed faces, blended features, distorted features, altered likeness, hybrid faces, altered second person's face, cartoon, painting, sketch, asymmetrical eyes, blurry facial features, unnatural expressions, inconsistent scale, incorrect perspective, distorted anatomy, cropped subjects, different distances.`
               },
               {
                 inlineData: {
@@ -246,36 +247,31 @@ const App = () => {
   return (
     <div className="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
       <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 w-full max-w-4xl transform transition-all duration-300 hover:scale-105">
-        <div className="text-center mb-10">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1"></div>
-            <div className="flex-1 text-center">
-              <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 tracking-tight mb-2">
-                VIP Photo Fusion
-              </h1>
-              <p className="text-lg md:text-xl text-gray-500">
-                Merge your vibe with a star's sparkle!
-              </p>
-              <p className="text-sm text-gray-400 mt-2">
-                Made for fun • User responsible for what they post
-              </p>
-            </div>
-            <div className="flex-1 flex justify-end space-x-2">
-              <button
-                onClick={() => setShowPaymentModal(true)}
-                className="bg-blue-100 hover:bg-blue-200 text-blue-600 px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                title="Test Payment Modal"
-              >
-                💳 Test Payment
-              </button>
-              <button
-                onClick={() => setShowConfigModal(true)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm transition-colors duration-200"
-                title="App Configuration"
-              >
-                ⚙️ Config
-              </button>
-            </div>
+        <div className="text-center mb-6 md:mb-10">
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            <h1 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 tracking-tight mb-2">
+              VIP Photo Fusion
+            </h1>
+            <p className="text-sm text-gray-500 mb-1 text-center">
+              Merge your vibe with a star's sparkle!
+            </p>
+            <p className="text-xs text-gray-400 text-center">
+              Made for fun • User responsible for what they post
+            </p>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden md:block">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 tracking-tight mb-2">
+              VIP Photo Fusion
+            </h1>
+            <p className="text-lg md:text-xl text-gray-500">
+              Merge your vibe with a star's sparkle!
+            </p>
+            <p className="text-sm text-gray-400 mt-2">
+              Made for fun • User responsible for what they post
+            </p>
           </div>
         </div>
 
@@ -358,58 +354,43 @@ const App = () => {
           />
         )}
 
-        {/* Action Buttons */}
-        <div className="space-y-4">
-          {/* Generate Button */}
-          <button
-            onClick={() => {
-              console.log('Generate button clicked, isLoading:', isLoading);
-              if (hasReachedLimit()) {
-                // If limit reached, show payment modal directly
-                console.log('Usage limit reached, showing payment modal');
-                setShowPaymentModal(true);
-              } else {
-                // Otherwise, proceed with image generation
-                handleGenerateImage();
-              }
-            }}
-            disabled={isLoading || (!userImage || !celebrityImage) && !hasReachedLimit()}
-            className={`w-full font-bold py-4 px-6 rounded-2xl text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center ${
-              hasReachedLimit() 
-                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white' 
-                : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
-            }`}
-          >
-            {isLoading ? (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                <span>Generating...</span>
-              </div>
-            ) : hasReachedLimit() ? (
-              <>
-                <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
-                Buy {getPaymentUses()} More Uses for $0.99
-              </>
-            ) : (
-              <>
-                <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
-                Create Your Slay!
-              </>
-            )}
-          </button>
-
-          {/* Buy Credits Button - Always Available */}
-          <button
-            onClick={() => {
-              console.log('Buy credits button clicked');
+        {/* Generate Button */}
+        <button
+          onClick={() => {
+            console.log('Generate button clicked, isLoading:', isLoading);
+            if (hasReachedLimit()) {
+              // If limit reached, show payment modal directly
+              console.log('Usage limit reached, showing payment modal');
               setShowPaymentModal(true);
-            }}
-            className="w-full font-bold py-3 px-6 rounded-2xl text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-          >
-            <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
-            Buy {getPaymentUses()} Credits for ${getPaymentAmount()}
-          </button>
-        </div>
+            } else {
+              // Otherwise, proceed with image generation
+              handleGenerateImage();
+            }
+          }}
+          disabled={isLoading || (!userImage || !celebrityImage) && !hasReachedLimit()}
+          className={`w-full font-bold py-4 px-6 rounded-2xl text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center ${
+            hasReachedLimit() 
+              ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white' 
+              : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
+          }`}
+        >
+          {isLoading ? (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+              <span>Generating...</span>
+            </div>
+          ) : hasReachedLimit() ? (
+            <>
+              <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
+              Buy {getPaymentUses()} More Uses for ${getPaymentAmount()}
+            </>
+          ) : (
+            <>
+              <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
+              Create Your Slay!
+            </>
+          )}
+        </button>
 
         {/* Status and Result */}
         {(error || message || generatedImageUrl) && (

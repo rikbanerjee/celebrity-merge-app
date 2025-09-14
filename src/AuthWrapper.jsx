@@ -142,15 +142,21 @@ const AuthWrapper = ({ children }) => {
         <div>
           {/* Sign out button */}
           <div className="fixed top-4 right-4 z-50">
-            <div className="bg-white rounded-lg shadow-lg p-4 flex items-center space-x-3">
-              <div className="text-sm text-gray-600">
+            <div className="bg-white rounded-lg shadow-lg p-2 2xl:p-4 flex items-center space-x-2 2xl:space-x-3">
+              <div className="text-xs 2xl:text-sm text-gray-600 hidden 2xl:block">
                 Welcome, <span className="font-semibold text-gray-800">{user.displayName || user.email}</span>
+              </div>
+              <div className="text-xs 2xl:text-sm text-gray-600 2xl:hidden">
+                <span className="font-semibold text-gray-800">
+                  {user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0]}
+                </span>
               </div>
               <button
                 onClick={handleSignOut}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition-colors"
+                className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 2xl:px-3 rounded-md text-xs 2xl:text-sm transition-colors"
               >
-                Sign Out
+                <span className="hidden 2xl:inline">Sign Out</span>
+                <span className="2xl:hidden">✕</span>
               </button>
             </div>
           </div>
