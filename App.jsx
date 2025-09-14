@@ -183,7 +183,7 @@ const App = () => {
             Merge your vibe with a star's sparkle!
           </p>
           <p className="text-sm text-gray-400 mt-2">
-            Powered by Google Gemini AI • Rate limits may apply
+            Made for fun • User responsible for what they post
           </p>
         </div>
 
