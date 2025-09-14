@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext } from 'react';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -8,6 +8,9 @@ import {
   signInWithPopup
 } from 'firebase/auth';
 import { auth } from './firebase';
+
+// Create Auth Context
+export const AuthContext = createContext();
 
 // SVG Icons
 const GoogleIcon = ({ className = '' }) => (
@@ -135,23 +138,25 @@ const AuthWrapper = ({ children }) => {
   if (user) {
     // User is authenticated, show the main app with sign-out option
     return (
-      <div>
-        {/* Sign out button */}
-        <div className="fixed top-4 right-4 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-4 flex items-center space-x-3">
-            <div className="text-sm text-gray-600">
-              Welcome, <span className="font-semibold text-gray-800">{user.displayName || user.email}</span>
+      <AuthContext.Provider value={{ user }}>
+        <div>
+          {/* Sign out button */}
+          <div className="fixed top-4 right-4 z-50">
+            <div className="bg-white rounded-lg shadow-lg p-4 flex items-center space-x-3">
+              <div className="text-sm text-gray-600">
+                Welcome, <span className="font-semibold text-gray-800">{user.displayName || user.email}</span>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition-colors"
+              >
+                Sign Out
+              </button>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition-colors"
-            >
-              Sign Out
-            </button>
           </div>
+          {children}
         </div>
-        {children}
-      </div>
+      </AuthContext.Provider>
     );
   }
 

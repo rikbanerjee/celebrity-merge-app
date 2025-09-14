@@ -1,4 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { AuthContext } from './src/AuthWrapper';
+import useUsage from './src/hooks/useUsage';
+import UsageCounter from './src/components/UsageCounter';
+import PaymentModal from './src/components/PaymentModal';
+import Toast from './src/components/Toast';
+import ConfigManager from './src/components/ConfigManager';
+import { getPaymentUses, getPaymentAmount } from './src/config/appConfig';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -57,6 +64,17 @@ const DownloadIcon = ({ className = '' }) => (
 
 
 const App = () => {
+  const { user } = useContext(AuthContext);
+  const { 
+    usageCount, 
+    loading: usageLoading, 
+    incrementUsage, 
+    resetUsage,
+    addPaymentUses,
+    hasReachedLimit,
+    getEffectiveUsageLimit
+  } = useUsage(user?.uid);
+
   const [userImage, setUserImage] = useState(null);
   const [celebrityImage, setCelebrityImage] = useState(null);
   const [backgroundPrompt, setBackgroundPrompt] = useState('');
@@ -65,6 +83,14 @@ const App = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [retryCount, setRetryCount] = useState(0);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  // Debug loading state changes
+  useEffect(() => {
+    console.log('Loading state changed:', isLoading);
+  }, [isLoading]);
 
   const handleImageUpload = (e, setImageSetter) => {
     const file = e.target.files[0];
@@ -83,11 +109,19 @@ const App = () => {
       return;
     }
 
+    // Note: Usage limit check is now handled in the button click handler
+
     setError('');
     setIsLoading(true);
     setGeneratedImageUrl('');
     setMessage('');
     setRetryCount(0);
+
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn('Generation timeout - forcing loading state to false');
+      setIsLoading(false);
+    }, 60000); // 60 second timeout
 
     try {
       const payload = {
@@ -95,7 +129,7 @@ const App = () => {
           {
             parts: [
               {
-                text: `Merge these two people into a single image, as if they are standing together on a ${backgroundPrompt || 'glamorous red carpet'}. Ensure the second person's face is clear and an accurate representation of the original imageMake the image fun and look like a high-fashion photo shoot.Negative prompt: distorted faces, multiple faces, blurry facial features, asymmetrical eyes.`
+                text: `Merge these two people into a single image, as if they are standing together on a ${backgroundPrompt || 'glamorous red carpet'}. Ensure first person's face is clear and an accurate representation of the original image. Ensure the second person's face is clear and an accurate representation of the original image. Make the image fun and look like a high-fashion photo shoot. Negative prompt: distorted faces, multiple faces, blurry facial features, asymmetrical eyes.`
               },
               {
                 inlineData: {
@@ -146,6 +180,12 @@ const App = () => {
         const imageUrl = `data:image/png;base64,${base64Data}`;
         setGeneratedImageUrl(imageUrl);
         setMessage('Your celebrity-level photo is ready!');
+        
+        // Increment usage count after successful generation (non-blocking)
+        incrementUsage().catch(error => {
+          console.error('Failed to increment usage count:', error);
+          // Don't show error to user as the main functionality worked
+        });
       } else {
         setError('Failed to generate image. Please try again with different images.');
       }
@@ -159,7 +199,9 @@ const App = () => {
         setError(errorMessage + ' You can try again in a few minutes.');
       }
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
+      console.log('Generation process completed - loading state set to false');
     }
   };
 
@@ -172,19 +214,69 @@ const App = () => {
     document.body.removeChild(link);
   };
 
+  const handlePaymentSuccess = async () => {
+    console.log('Payment success handler called');
+    try {
+      console.log('Adding payment uses...');
+      await addPaymentUses();
+      setShowPaymentModal(false);
+      setToast({
+        message: `Payment successful! You now have ${getPaymentUses()} new uses.`,
+        type: 'success'
+      });
+      console.log('Payment success flow completed');
+    } catch (error) {
+      console.error('Error adding payment uses:', error);
+      setToast({
+        message: 'Payment successful, but there was an error updating your usage. Please refresh the page.',
+        type: 'error'
+      });
+    }
+  };
+
+  const handlePaymentError = (error) => {
+    console.error('Payment error:', error);
+    // Error is handled in the PaymentModal component
+  };
+
+  const handleCloseToast = () => {
+    setToast(null);
+  };
+
   return (
     <div className="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
       <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 w-full max-w-4xl transform transition-all duration-300 hover:scale-105">
         <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 tracking-tight mb-2">
-            VIP Photo Fusion
-          </h1>
-          <p className="text-lg md:text-xl text-gray-500">
-            Merge your vibe with a star's sparkle!
-          </p>
-          <p className="text-sm text-gray-400 mt-2">
-            Made for fun • User responsible for what they post
-          </p>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-1"></div>
+            <div className="flex-1 text-center">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 tracking-tight mb-2">
+                VIP Photo Fusion
+              </h1>
+              <p className="text-lg md:text-xl text-gray-500">
+                Merge your vibe with a star's sparkle!
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                Made for fun • User responsible for what they post
+              </p>
+            </div>
+            <div className="flex-1 flex justify-end space-x-2">
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                className="bg-blue-100 hover:bg-blue-200 text-blue-600 px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                title="Test Payment Modal"
+              >
+                💳 Test Payment
+              </button>
+              <button
+                onClick={() => setShowConfigModal(true)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                title="App Configuration"
+              >
+                ⚙️ Config
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-6 mb-8">
@@ -257,24 +349,67 @@ const App = () => {
           </div>
         </div>
 
-        {/* Generate Button */}
-        <button
-          onClick={handleGenerateImage}
-          disabled={isLoading || (!userImage || !celebrityImage)}
-          className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 px-6 rounded-2xl text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center"
-        >
-          {isLoading ? (
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-              <span>Generating...</span>
-            </div>
-          ) : (
-            <>
-              <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
-              Create Your Slay!
-            </>
-          )}
-        </button>
+        {/* Usage Counter */}
+        {!usageLoading && (
+          <UsageCounter 
+            usageCount={usageCount} 
+            hasReachedLimit={hasReachedLimit()}
+            getEffectiveUsageLimit={getEffectiveUsageLimit}
+          />
+        )}
+
+        {/* Action Buttons */}
+        <div className="space-y-4">
+          {/* Generate Button */}
+          <button
+            onClick={() => {
+              console.log('Generate button clicked, isLoading:', isLoading);
+              if (hasReachedLimit()) {
+                // If limit reached, show payment modal directly
+                console.log('Usage limit reached, showing payment modal');
+                setShowPaymentModal(true);
+              } else {
+                // Otherwise, proceed with image generation
+                handleGenerateImage();
+              }
+            }}
+            disabled={isLoading || (!userImage || !celebrityImage) && !hasReachedLimit()}
+            className={`w-full font-bold py-4 px-6 rounded-2xl text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center ${
+              hasReachedLimit() 
+                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white' 
+                : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
+            }`}
+          >
+            {isLoading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                <span>Generating...</span>
+              </div>
+            ) : hasReachedLimit() ? (
+              <>
+                <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
+                Buy {getPaymentUses()} More Uses for $0.99
+              </>
+            ) : (
+              <>
+                <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
+                Create Your Slay!
+              </>
+            )}
+          </button>
+
+          {/* Buy Credits Button - Always Available */}
+          <button
+            onClick={() => {
+              console.log('Buy credits button clicked');
+              setShowPaymentModal(true);
+            }}
+            className="w-full font-bold py-3 px-6 rounded-2xl text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-600 text-white"
+          >
+            <WandMagicSparklesIcon className="mr-2 w-5 h-5" />
+            Buy {getPaymentUses()} Credits for ${getPaymentAmount()}
+          </button>
+        </div>
 
         {/* Status and Result */}
         {(error || message || generatedImageUrl) && (
@@ -298,6 +433,30 @@ const App = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* Payment Modal */}
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={handlePaymentSuccess}
+          onError={handlePaymentError}
+        />
+
+        {/* Configuration Modal */}
+        <ConfigManager
+          isOpen={showConfigModal}
+          onClose={() => setShowConfigModal(false)}
+        />
+
+        {/* Toast Notification */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            duration={5000}
+            onClose={handleCloseToast}
+          />
         )}
       </div>
     </div>
