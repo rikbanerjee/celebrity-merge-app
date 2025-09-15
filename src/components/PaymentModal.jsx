@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -7,6 +7,7 @@ import {
   useElements
 } from '@stripe/react-stripe-js';
 import { getPaymentAmount, getPaymentUses } from '../config/appConfig';
+import { AuthContext } from '../AuthWrapper';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -17,6 +18,7 @@ console.log('Stripe publishable key:', import.meta.env.VITE_STRIPE_PUBLISHABLE_K
 const PaymentForm = ({ onSuccess, onError, onClose }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const { user } = useContext(AuthContext);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
 
@@ -39,33 +41,62 @@ const PaymentForm = ({ onSuccess, onError, onClose }) => {
     try {
       console.log('Starting payment process...');
       
-      // For testing purposes, we'll simulate a payment
-      // In production, you would create a payment intent and confirm it
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock payment success for testing
-      // In production, replace this with actual Stripe payment processing
-      const mockSuccess = Math.random() > 0.3; // 70% success rate for testing
-      
-      console.log('Mock payment result:', mockSuccess ? 'Success' : 'Failed');
-      
-      if (mockSuccess) {
-        console.log('Payment successful, calling onSuccess');
-        onSuccess && onSuccess();
-      } else {
-        // Simulate different error types
-        const errors = [
-          'Your card was declined.',
-          'Insufficient funds.',
-          'Invalid card number.',
-          'Card expired.'
-        ];
-        const randomError = errors[Math.floor(Math.random() * errors.length)];
-        console.log('Payment failed:', randomError);
-        setError(randomError);
-        onError && onError(randomError);
+      // Create payment intent on your backend
+      const response = await fetch('https://us-central1-celebrity-merge.cloudfunctions.net/createPaymentIntent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: Math.round(getPaymentAmount() * 100), // Convert to cents
+          currency: 'usd',
+          metadata: {
+            userId: user?.uid || 'anonymous',
+            userEmail: user?.email || 'unknown',
+            paymentUses: getPaymentUses()
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create payment intent');
+      }
+
+      const { clientSecret } = await response.json();
+      console.log('Payment intent created:', clientSecret);
+
+      // Confirm the payment with Stripe
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement),
+        }
+      });
+
+      if (error) {
+        console.log('Payment failed:', error.message);
+        setError(error.message);
+        onError && onError(error.message);
+      } else if (paymentIntent.status === 'succeeded') {
+        console.log('Payment successful:', paymentIntent.id);
+        
+        // Call your backend to update user's usage
+        const updateResponse = await fetch('https://us-central1-celebrity-merge.cloudfunctions.net/updateUsage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user?.uid || 'anonymous',
+            paymentIntentId: paymentIntent.id,
+            uses: getPaymentUses()
+          }),
+        });
+
+        if (updateResponse.ok) {
+          onSuccess && onSuccess();
+        } else {
+          throw new Error('Failed to update usage');
+        }
       }
     } catch (err) {
       console.error('Payment error:', err);
