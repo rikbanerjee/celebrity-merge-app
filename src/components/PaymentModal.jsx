@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -220,6 +220,7 @@ const PaymentForm = ({ onSuccess, onError, onClose }) => {
 
 const PaymentModal = ({ isOpen, onClose, onSuccess }) => {
   const [paymentError, setPaymentError] = useState(null);
+  const modalRef = useRef(null);
 
   const handleSuccess = () => {
     setPaymentError(null);
@@ -230,11 +231,25 @@ const PaymentModal = ({ isOpen, onClose, onSuccess }) => {
     setPaymentError(error);
   };
 
+  // Auto-scroll modal into view when it opens
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      // Small delay to ensure modal is rendered
+      setTimeout(() => {
+        modalRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end',
+          inline: 'nearest'
+        });
+      }, 100);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-end justify-center min-h-screen px-0 pb-4 text-center sm:items-center sm:pt-0 sm:pb-20 sm:px-4">
         {/* Background overlay */}
         <div 
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
@@ -242,8 +257,8 @@ const PaymentModal = ({ isOpen, onClose, onSuccess }) => {
         ></div>
 
         {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div ref={modalRef} className="inline-block w-full bg-white rounded-t-lg text-left shadow-xl transform transition-all sm:rounded-lg sm:my-8 sm:align-middle sm:max-w-lg sm:w-full max-h-[75vh] flex flex-col">
+          <div className="flex-1 overflow-y-auto px-4 pt-5 pb-8 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               <div className="w-full">
                 <div className="flex items-center justify-between mb-4">
