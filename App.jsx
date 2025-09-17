@@ -62,6 +62,24 @@ const DownloadIcon = ({ className = '' }) => (
   </svg>
 );
 
+const InfoIcon = ({ className = '' }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
+    <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336h24V272H216c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24H216c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z" />
+  </svg>
+);
+
+const XIcon = ({ className = '' }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
+    <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z" />
+  </svg>
+);
+
+const CheckIcon = ({ className = '' }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
+    <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z" />
+  </svg>
+);
+
 
 const App = () => {
   const { user } = useContext(AuthContext);
@@ -86,6 +104,7 @@ const App = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showImageHelper, setShowImageHelper] = useState(false);
 
   // Debug loading state changes
   useEffect(() => {
@@ -244,9 +263,98 @@ const App = () => {
     setToast(null);
   };
 
+  // Main image upload helper component for the top left
+  const MainImageUploadHelper = () => (
+    <div className="relative">
+      <button
+        onClick={() => setShowImageHelper(!showImageHelper)}
+        className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-colors duration-200 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg"
+      >
+        <InfoIcon className="w-4 h-4" />
+        <span className="text-sm font-medium">Image Tips</span>
+      </button>
+      
+      {showImageHelper && (
+        <div className="absolute top-12 left-0 bg-white border-2 border-indigo-200 rounded-xl p-4 shadow-lg z-20 w-80 transition-all duration-300">
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="text-sm font-bold text-indigo-600 flex items-center">
+              <InfoIcon className="w-4 h-4 mr-2" />
+              Upload Tips
+            </h4>
+            <button 
+              onClick={() => setShowImageHelper(false)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <div className="space-y-3 text-xs">
+            {/* Image Quality */}
+            <div className="flex items-start space-x-2">
+              <CheckIcon className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-gray-700">Clear & Sharp:</span>
+                <span className="text-gray-600 ml-1">Upload a well-lit, high-resolution image</span>
+              </div>
+            </div>
+            
+            {/* Technical Guidelines */}
+            <div className="flex items-start space-x-2">
+              <CheckIcon className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-gray-700">Good Lighting:</span>
+                <span className="text-gray-600 ml-1">Natural light works best, avoid shadows</span>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-2">
+              <CheckIcon className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-gray-700">Face Forward:</span>
+                <span className="text-gray-600 ml-1">Look directly at camera, avoid sunglasses</span>
+              </div>
+            </div>
+            
+            {/* Composition Tips */}
+            <div className="flex items-start space-x-2">
+              <CheckIcon className="w-3 h-3 text-purple-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-gray-700">Full Frame:</span>
+                <span className="text-gray-600 ml-1">Include face and shoulders, single person</span>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-2">
+              <XIcon className="w-3 h-3 text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-gray-700">Avoid:</span>
+                <span className="text-gray-600 ml-1">Blurry photos, extreme angles, group shots</span>
+              </div>
+            </div>
+            
+            {/* Legal Guidelines */}
+            <div className="flex items-start space-x-2">
+              <CheckIcon className="w-3 h-3 text-amber-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-gray-700">Responsible Use:</span>
+                <span className="text-gray-600 ml-1">Only use images you own or have permission to use</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
       <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 w-full max-w-4xl transform transition-all duration-300 hover:scale-105">
+        {/* Image Upload Helper - Top Left */}
+        <div className="absolute top-4 left-4 z-10">
+          <MainImageUploadHelper />
+        </div>
+        
         <div className="text-center mb-6 md:mb-10">
           {/* Mobile Layout */}
           <div className="md:hidden">
@@ -257,7 +365,7 @@ const App = () => {
               Merge your vibe with a star's sparkle!
             </p>
             <p className="text-xs text-gray-400 text-center">
-              Made for fun • User responsible for what they post
+              ✨ Pure magic awaits • Click the ℹ️ for pro tips
             </p>
           </div>
 
@@ -270,7 +378,7 @@ const App = () => {
               Merge your vibe with a star's sparkle!
             </p>
             <p className="text-sm text-gray-400 mt-2">
-              Made for fun • User responsible for what they post
+              ✨ Pure magic awaits • Click the ℹ️ for pro tips
             </p>
           </div>
         </div>
