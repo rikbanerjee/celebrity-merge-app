@@ -266,9 +266,18 @@ const App = () => {
   // Main image upload helper component for the top left
   const MainImageUploadHelper = () => (
     <div className="relative">
+      {/* Mobile: Just the icon */}
       <button
         onClick={() => setShowImageHelper(!showImageHelper)}
-        className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-colors duration-200 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg"
+        className="md:hidden flex items-center justify-center w-10 h-10 text-indigo-600 hover:text-indigo-800 transition-colors duration-200 bg-indigo-50 hover:bg-indigo-100 rounded-full"
+      >
+        <InfoIcon className="w-5 h-5" />
+      </button>
+      
+      {/* Desktop: Icon with text */}
+      <button
+        onClick={() => setShowImageHelper(!showImageHelper)}
+        className="hidden md:flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-colors duration-200 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg"
       >
         <InfoIcon className="w-4 h-4" />
         <span className="text-sm font-medium">Image Tips</span>

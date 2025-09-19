@@ -6,8 +6,8 @@ export const APP_CONFIG = {
   USAGE: {
     FREE_LIMIT: 0,           // Free usage limit
     PAYMENT_AMOUNT: 0.99,    // Cost for additional uses
-    PAYMENT_USES: 2,         // Number of uses after payment
-    WARNING_THRESHOLD: 1,    // Show warning at this usage count
+    PAYMENT_USES: 3,         // Number of uses after payment
+    WARNING_THRESHOLD: 2,    // Show warning at this usage count
   },
 
   // Stripe configuration
